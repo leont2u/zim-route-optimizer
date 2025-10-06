@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zimbabwe Route Optimizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #f7f8fb; color: #0f172a; }
+    header { background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; padding: 28px 20px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .card { background: white; border-radius: 14px; box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08); padding: 20px; margin-top: -24px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 120px; gap: 12px; }
+    label { font-weight: 600; font-size: 14px; color: #334155; }
+    select, button { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; background: #fff; font-size: 14px; }
+    button { background: #2563eb; color: white; border: none; font-weight: 600; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+    .map { border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; }
+    .meta { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; display: grid; gap: 6px; }
+    .meta .kvs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e0e7ff; color: #3730a3; font-weight: 600; font-size: 12px; }
+    .path { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 10px; overflow-x: auto; font-size: 13px; }
+    footer { text-align: center; color: #64748b; padding: 22px; font-size: 13px; }
+  </style>
+  
+  <script>
+    // Remove default folium padding to better fit in our card
+    window.addEventListener('load', () => {
+      const maps = document.querySelectorAll('.folium-map');
+      maps.forEach(m => { m.style.borderRadius = '14px'; });
+    });
+  </script>
+  <link rel="icon" href="data:,">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    @media (prefers-color-scheme: dark) {
+      body { background: #0b1220; color: #e2e8f0; }
+      .card { background: #0f172a; border: 1px solid #1f2937; }
+      select, button { background: #0b1220; color: #e2e8f0; border-color: #1f2937; }
+      .meta { background: #0b1220; border-color: #1f2937; }
+      .path { background: #020617; }
+    }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style> .folium-map { width: 100%; height: 520px; } </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Zimbabwe Route Optimizer</h1>
+      <div>Compute the best route between two cities by distance, time, or cost.</div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <form method="post">
+        <div class="row">
+          <div>
+            <label for="start_city">Start City</label>
+            <select id="start_city" name="start_city" required>
+              {% for city in cities %}
+                <option value="{{ city }}" {% if route_info and route_info.path and route_info.path[0] == city %}selected{% endif %}>{{ city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="end_city">End City</label>
+            <select id="end_city" name="end_city" required>
+              {% for city in cities %}
+                <option value="{{ city }}" {% if route_info and route_info.path and route_info.path[-1] == city %}selected{% endif %}>{{ city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="weight_type">Optimize By</label>
+            <select id="weight_type" name="weight_type">
+              <option value="distance" {% if route_info and route_info.weight_type == 'distance' %}selected{% endif %}>Distance</option>
+              <option value="time" {% if route_info and route_info.weight_type == 'time' %}selected{% endif %}>Time</option>
+              <option value="cost" {% if route_info and route_info.weight_type == 'cost' %}selected{% endif %}>Cost</option>
+            </select>
+          </div>
+          <div>
+            <label for="mode">Mode</label>
+            <select id="mode" name="mode">
+              <option value="sp" {% if not route_info or route_info.mode == 'sp' %}selected{% endif %}>Shortest Path</option>
+              <option value="tsp" {% if route_info and route_info.mode == 'tsp' %}selected{% endif %}>TSP</option>
+            </select>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button type="submit">Find Route</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="grid">
+        <form method="post">
+          <input type="hidden" name="start_city" value="{{ request.form.start_city or (route_info.path[0] if route_info and route_info.path) }}">
+          <input type="hidden" name="end_city" value="{{ request.form.end_city or (route_info.path[-1] if route_info and route_info.path) }}">
+          <input type="hidden" name="weight_type" value="{{ request.form.weight_type or (route_info.weight_type if route_info) }}">
+          <div class="card" style="padding:16px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:12px;">
+              <div>
+                <label for="tsp_algo">TSP Algorithm</label>
+                <select id="tsp_algo" name="tsp_algo">
+                  <option value="nearest">Nearest Neighbor</option>
+                  <option value="two_opt">Two-Opt</option>
+                  <option value="held_karp">Held-Karp (small graphs)</option>
+                  <option value="constrained">Constrained (budget/time/mandatory)</option>
+                </select>
+              </div>
+              <div>
+                <label for="mandatory_cities">Mandatory Stops (comma-separated)</label>
+                <input id="mandatory_cities" name="mandatory_cities" placeholder="Harare, Mutare" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0;" />
+              </div>
+              <div>
+                <label for="max_budget">Max Budget (same units as weight)</label>
+                <input id="max_budget" name="max_budget" type="number" step="any" placeholder="e.g., 1200" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0;" />
+                <small style="color:#64748b; font-size:11px;">Demo: Try 800 to see budget constraint effects</small>
+              </div>
+              <div>
+                <label for="max_time">Max Time (hours, approx)</label>
+                <input id="max_time" name="max_time" type="number" step="any" placeholder="e.g., 20" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0;" />
+                <small style="color:#64748b; font-size:11px;">Demo: Try 8 to see time constraint effects</small>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <input type="hidden" name="mode" value="tsp" />
+              <button type="submit">Run TSP</button>
+            </div>
+          </div>
+        </form>
+
+        {% if route_info and not route_info.error %}
+          <div class="meta">
+            <div><span class="pill">{{ route_info.algorithm }}</span></div>
+            <div class="kvs">
+              <div><strong>Distance:</strong> {{ route_info.distance }} ({{ route_info.weight_type }})</div>
+              <div><strong>Nodes Visited:</strong> {{ route_info.nodes_visited }}</div>
+              <div><strong>Exec Time:</strong> {{ route_info.execution_time }}s</div>
+              <div><strong>Stops:</strong> {{ route_info.path|length }}</div>
+            </div>
+          </div>
+          <div class="path">{{ route_info.path | join(' -> ') }}</div>
+        {% elif route_info and route_info.error %}
+          <div class="meta" style="border-color:#fecaca; background:#fef2f2; color:#991b1b;">
+            {{ route_info.error }}
+          </div>
+        {% endif %}
+
+        <div class="map">
+          {% if map_html and route_info %}
+            {{ map_html|safe }}
+          {% else %}
+            <div style="padding: 24px; color: #64748b;">Select two cities and click Find Route to see the map.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built with Flask + Folium • Zimbabwe Graph Dataset
+  </footer>
+</body>
+</html>
+
+
