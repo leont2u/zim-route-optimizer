@@ -7,511 +7,135 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    @keyframes gradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 
-    /* Theme variables - dark defaults, overridden for light mode below */
-    :root {
-      --bg-gradient: linear-gradient(-45deg, #000428, #004e92, #000428);
-      --text-color: #e2e8f0;
-      --header-bg: rgba(2, 6, 23, 0.8);
-      --card-bg: rgba(15, 23, 42, 0.7);
-      --control-bg: rgba(2, 6, 23, 0.6);
-      --muted: #94a3b8;
-      --border-color: rgba(255, 255, 255, 0.1);
-      --pill-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      --meta-bg: rgba(2, 6, 23, 0.6);
-      --path-bg: rgba(2, 6, 23, 0.8);
-      --chip-bg: rgba(59,130,246,0.12);
-      --chip-color: #cfe7ff;
-      --map-border: rgba(255, 255, 255, 0.1);
-      --footer-bg: rgba(2, 6, 23, 0.8);
-      --error-bg: #fef2f2; /* light-looking error colors are fine when paired with dark text via variable below */
-      --error-border: #fecaca;
-      --error-color: #991b1b;
-    }
-
-    body { 
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
-      margin: 0; 
-      min-height: 100vh;
-      background: var(--bg-gradient);
-      background-size: 400% 400%;
-      animation: gradient 15s ease infinite;
-      color: var(--text-color);
-    }
-    header { 
-      background: var(--header-bg);
-      backdrop-filter: blur(10px);
-      color: inherit; 
-      padding: 28px 20px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    h1 { 
-      margin: 0; 
-      font-size: 32px; 
-      font-weight: 700;
-      background: linear-gradient(to right, #60a5fa, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .card { 
-      background: var(--card-bg);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(2, 6, 23, 0.2);
-      padding: 24px;
-      margin-top: -24px;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border-color);
-      animation: slideUp 0.5s ease-out;
-    }
-    .row { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr 1fr 1fr 120px; 
-      gap: 16px;
-    }
-    /* TSP options responsive grid */
-    .tsp-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-    @media (max-width: 900px) {
-      .row { grid-template-columns: 1fr 1fr; }
-      .tsp-grid { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 560px) {
-      .row { grid-template-columns: 1fr; }
-      .tsp-grid { grid-template-columns: 1fr; }
-    }
-
-    /* Multi-select (chips + dropdown) */
-    .multi-select {
-      position: relative;
-      background: rgba(2,6,23,0.5);
-      border-radius: 10px;
-      padding: 8px 10px;
-      min-height: 46px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      border: 1px solid rgba(255,255,255,0.06);
-      z-index: 1000; /* ensure the control is above surrounding content */
-    }
-    .multi-select .chips { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .chip {
-      display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:999px; background: rgba(59,130,246,0.12); color:#cfe7ff; font-size:13px;
-    }
-    .chip .remove { cursor:pointer; font-weight:700; padding-left:6px; }
-    .options-dropdown {
-      position: absolute;
-      left: 8px;
-      right: 8px;
-      top: calc(100% + 8px);
-      background: rgba(2,6,23,0.95);
-      border-radius:8px;
-      max-height:220px;
-      overflow:auto;
-      z-index: 9999; /* large z-index so dropdown overlays meta/map */
-      box-shadow:0 8px 30px rgba(2,6,23,0.5);
-      border:1px solid rgba(255,255,255,0.06);
-      /* Prevent the dropdown from creating its own stacking context that could get clipped */
-      transform: translateZ(0);
-    }
-    .option-item { padding:10px 12px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.03); }
-    .option-item:hover { background: rgba(255,255,255,0.02); }
-    .option-item.disabled { opacity:0.5; cursor:default; }
-    label { 
-      font-weight: 500; 
-      font-size: 14px; 
-      color: #94a3b8;
-      margin-bottom: 6px;
-      display: block;
-    }
-    select, button, input { 
-      width: 100%; 
-      padding: 12px 16px; 
-      border-radius: 12px; 
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(2, 6, 23, 0.6);
-      color: #e2e8f0;
-      font-size: 14px;
-      transition: all 0.2s ease;
-    }
-    select:hover, button:hover, input:hover {
-      border-color: rgba(255, 255, 255, 0.2);
-      background: rgba(2, 6, 23, 0.8);
-    }
-    button { 
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
-    }
-    button:active {
-      transform: translateY(1px);
-    }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
-    .map { 
-      border-radius: 16px; 
-      overflow: hidden; 
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 4px 20px rgba(2, 6, 23, 0.2);
-    }
-    .meta { 
-      background: rgba(2, 6, 23, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      padding: 16px;
-      display: grid;
-      gap: 8px;
-      backdrop-filter: blur(10px);
-    }
-    .meta .kvs { 
-      display: grid; 
-      grid-template-columns: repeat(4, 1fr); 
-      gap: 16px;
-    }
-    .pill { 
-      display: inline-block; 
-      padding: 6px 12px; 
-      border-radius: 999px; 
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      font-weight: 600;
-      font-size: 12px;
-      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
-    }
-    .path { 
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; 
-      background: rgba(2, 6, 23, 0.8);
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 12px;
-      overflow-x: auto;
-      font-size: 13px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    footer { 
-      text-align: center; 
-      color: #94a3b8;
-      padding: 22px;
-      font-size: 13px;
-      background: rgba(2, 6, 23, 0.8);
-      margin-top: 40px;
-      backdrop-filter: blur(10px);
-    }
-  </style>
-  
-  <script>
-    // Remove default folium padding to better fit in our card
-    window.addEventListener('load', () => {
-      const maps = document.querySelectorAll('.folium-map');
-      maps.forEach(m => { m.style.borderRadius = '14px'; });
-    });
-  </script>
-  <link rel="icon" href="data:,">
-  <meta name="color-scheme" content="light dark">
-  <style>
-    /* Dark mode is now the default theme */
-    @media (prefers-color-scheme: light) {
-      /* Light theme overrides via CSS variables */
-      :root {
-        --bg-gradient: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #f0f9ff);
-        --text-color: #0f172a;
-        --header-bg: rgba(255, 255, 255, 0.8);
-        --card-bg: rgba(255, 255, 255, 0.7);
-        --control-bg: rgba(255, 255, 255, 0.9);
-        --muted: #475569;
-        --border-color: rgba(0, 0, 0, 0.08);
-        --pill-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        --meta-bg: rgba(255, 255, 255, 0.7);
-        --path-bg: rgba(255, 255, 255, 0.9);
-        --chip-bg: rgba(59,130,246,0.08);
-        --chip-color: #0f172a;
-        --map-border: rgba(0, 0, 0, 0.08);
-        --footer-bg: rgba(255, 255, 255, 0.8);
-        --error-bg: #fee2e2;
-        --error-border: #fecaca;
-        --error-color: #7f1d1d;
-      }
-      /* Inputs and labels inherit the new variables */
-      label { color: var(--muted); }
-      select, button, input { background: var(--control-bg); color: var(--text-color); border: 1px solid var(--border-color); }
-      .card, .meta { background: var(--card-bg); border: 1px solid var(--border-color); }
-      .path { background: var(--path-bg); color: var(--text-color); }
-      footer { background: var(--footer-bg); color: var(--muted); }
-    }
-
-    /* Theme-aware error meta box */
-    .meta.error {
-      background: var(--error-bg);
-      border-color: var(--error-border);
-      color: var(--error-color);
-    }
-  </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style> .folium-map { width: 100%; height: 520px; } </style>
 </head>
 <body>
   <header>
-    <div class="container">
-      <h1>Zimbabwe Route Optimizer</h1>
-      <div>Compute the best route between two cities by distance, time, or cost.</div>
-    </div>
+    <h1>Zimbabwe Route Optimizer</h1>
+    <div>Find the best route by distance, time, or cost</div>
   </header>
 
   <div class="container">
     <div class="card">
-      <form method="post" id="route-form">
-        <div class="row">
+      <div class="section-title">Route Finder</div>
+      <form method="post">
+        <div class="form-grid">
           <div>
-            <label for="mode">Mode</label>
-            <select id="mode" name="mode" onchange="updateModeUI()">
-              <option value="sp" {% if (request.form.mode and request.form.mode == 'sp') or (not request.form.mode and (not route_info or route_info.mode == 'sp')) %}selected{% endif %}>Shortest Path</option>
-              <option value="tsp" {% if (request.form.mode and request.form.mode == 'tsp') or (route_info and route_info.mode == 'tsp') %}selected{% endif %}>TSP</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="start_city">Start City</label>
-            <select id="start_city" name="start_city" required>
+            <label>Start City</label>
+            <select name="start_city" required>
               {% for city in cities %}
-                <option value="{{ city }}" {% if request.form.start_city == city or (route_info and route_info.path and route_info.path[0] == city) %}selected{% endif %}>{{ city }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div id="end-city-block">
-            <label for="end_city">End City</label>
-            <select id="end_city" name="end_city" required>
-              {% for city in cities %}
-                <option value="{{ city }}" {% if request.form.end_city == city or (route_info and route_info.path and route_info.path[-1] == city) %}selected{% endif %}>{{ city }}</option>
+              <option value="{{ city }}" {% if route_info and route_info.path and route_info.path[0] == city %}selected{% endif %}>{{ city }}</option>
               {% endfor %}
             </select>
           </div>
 
           <div>
-            <label for="weight_type">Optimize By</label>
-            <select id="weight_type" name="weight_type">
-              <option value="distance" {% if request.form.weight_type == 'distance' or (route_info and route_info.weight_type == 'distance') %}selected{% endif %}>Distance</option>
-              <option value="time" {% if request.form.weight_type == 'time' or (route_info and route_info.weight_type == 'time') %}selected{% endif %}>Time</option>
-              <option value="cost" {% if request.form.weight_type == 'cost' or (route_info and route_info.weight_type == 'cost') %}selected{% endif %}>Cost</option>
+            <label>End City</label>
+            <select name="end_city" required>
+              {% for city in cities %}
+              <option value="{{ city }}" {% if route_info and route_info.path and route_info.path[-1] == city %}selected{% endif %}>{{ city }}</option>
+              {% endfor %}
             </select>
           </div>
 
-          <div style="display:flex; gap:8px; align-items:end;">
-            <div style="flex:1">
-              <label>&nbsp;</label>
-              <button type="submit" id="submit-btn">Find Route</button>
-            </div>
-            <div style="width:90px;">
-              <label>&nbsp;</label>
-              <button type="button" style="background:transparent; border:1px solid rgba(255,255,255,0.08); color:inherit;" onclick="window.location='/'">Reset</button>
-            </div>
+          <div>
+            <label>Optimize By</label>
+            <select name="weight_type">
+              <option value="distance">Distance</option>
+              <option value="time">Time</option>
+              <option value="cost">Cost</option>
+            </select>
           </div>
-        </div>
 
-        <!-- TSP-only options (hidden when mode == sp) -->
-        <div id="tsp-options" class="card" style="margin-top:18px; display:none;">
-          <div class="tsp-grid">
-            <div>
-              <label for="tsp_algo">TSP Algorithm</label>
-              <select id="tsp_algo" name="tsp_algo">
-                <option value="nearest" {% if request.form.tsp_algo == 'nearest' %}selected{% endif %}>Nearest Neighbor</option>
-                <option value="two_opt" {% if request.form.tsp_algo == 'two_opt' %}selected{% endif %}>Two-Opt</option>
-                <option value="held_karp" {% if request.form.tsp_algo == 'held_karp' %}selected{% endif %}>Held-Karp (small graphs)</option>
-                <option value="constrained" {% if request.form.tsp_algo == 'constrained' %}selected{% endif %}>Constrained (budget/time/mandatory)</option>
-              </select>
-            </div>
-            <div>
-              <label for="mandatory_select">Mandatory Stops</label>
-              <div id="mandatory_select" class="multi-select" tabindex="0">
-                <div class="chips" id="mandatory_chips">
-                  <!-- chips inserted here -->
-                </div>
-                <div style="flex:1;color:var(--muted);">Select mandatory stops</div>
-                <div id="mandatory_dropdown" class="options-dropdown" style="display:none;">
-                  {% for city in cities %}
-                    <div class="option-item" data-city="{{ city }}">{{ city }}</div>
-                  {% endfor %}
-                </div>
-                <!-- hidden input to send to server -->
-                <input type="hidden" id="mandatory_cities" name="mandatory_cities" value="{{ request.form.mandatory_cities or '' }}" />
-              </div>
-            </div>
-            <div>
-              <label for="max_budget">Max Budget (same units as weight)</label>
-              <input id="max_budget" name="max_budget" type="number" step="any" placeholder="e.g., 1200" value="{{ request.form.max_budget or '' }}" />
-              <small style="color:var(--muted); font-size:11px;">Demo: Try 800 to see budget constraint effects</small>
-            </div>
-            <div>
-              <label for="max_time">Max Time (hours, approx)</label>
-              <input id="max_time" name="max_time" type="number" step="any" placeholder="e.g., 20" value="{{ request.form.max_time or '' }}" />
-              <small style="color:var(--muted); font-size:11px;">Demo: Try 8 to see time constraint effects</small>
-            </div>
+          <div>
+            <label>Mode</label>
+            <select name="mode">
+              <option value="sp">Shortest Path</option>
+              <option value="tsp">TSP</option>
+            </select>
           </div>
-          <div style="margin-top:12px; display:flex; gap:10px;">
-            <div style="flex:1">
-              <small style="color:var(--muted);">When TSP mode is selected, the main Find Route button will execute the selected TSP algorithm.</small>
-            </div>
+
+          <div style="align-self: end;">
+            <button type="submit">Find Route</button>
           </div>
         </div>
       </form>
+    </div>
 
-      <div class="grid">
-        
-
-        {% if route_info and not route_info.error %}
-          <div class="meta">
-            <div><span class="pill">{{ route_info.algorithm }}</span></div>
-            <div class="kvs">
-              <div><strong>Distance:</strong> {{ route_info.distance }} ({{ route_info.weight_type }})</div>
-              <div><strong>Nodes Visited:</strong> {{ route_info.nodes_visited }}</div>
-              <div><strong>Exec Time:</strong> {{ route_info.execution_time }}s</div>
-              <div><strong>Stops:</strong> {{ route_info.path|length }}</div>
-            </div>
+    <div style="margin-top: 24px;" class="card">
+      <div class="section-title">TSP & Constraints</div>
+      <form method="post">
+        <div class="form-grid">
+          <div>
+            <label>TSP Algorithm</label>
+            <select name="tsp_algo">
+              <option value="nearest">Nearest Neighbor</option>
+              <option value="two_opt">Two-Opt</option>
+              <option value="held_karp">Held-Karp</option>
+              <option value="constrained">Constrained</option>
+            </select>
           </div>
-          <div class="path">{{ route_info.path | join(' -> ') }}</div>
-        {% elif route_info and route_info.error %}
-          <div class="meta error">
-            {{ route_info.error }}
-          </div>
-        {% endif %}
 
-        <div class="map">
-          {% if map_html and route_info %}
-            {{ map_html|safe }}
-          {% else %}
-            <div style="padding: 24px; color: var(--muted);">Select two cities and click Find Route to see the map.</div>
-          {% endif %}
+          <div>
+            <label>Mandatory Stops</label>
+            <input name="mandatory_cities" placeholder="Harare, Mutare" />
+          </div>
+
+          <div>
+            <label>Max Budget</label>
+            <input name="max_budget" type="number" step="any" placeholder="e.g., 1200" />
+          </div>
+
+          <div>
+            <label>Max Time (hours)</label>
+            <input name="max_time" type="number" step="any" placeholder="e.g., 20" />
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <input type="hidden" name="mode" value="tsp" />
+          <button type="submit">Run TSP</button>
+        </div>
+      </form>
+    </div>
+
+    {% if route_info %}
+    <div style="margin-top: 24px;" class="card">
+      <div class="section-title">Results</div>
+
+      {% if route_info.error %}
+      <div class="meta" style="border-color:#fecaca; background:#fef2f2; color:#991b1b;">
+        {{ route_info.error }}
+      </div>
+      {% else %}
+      <div class="meta">
+        <div><span class="pill">{{ route_info.algorithm }}</span></div>
+        <div class="kvs">
+          <div><strong>Distance:</strong> {{ route_info.distance }} ({{ route_info.weight_type }})</div>
+          <div><strong>Nodes Visited:</strong> {{ route_info.nodes_visited }}</div>
+          <div><strong>Exec Time:</strong> {{ route_info.execution_time }}s</div>
+          <div><strong>Stops:</strong> {{ route_info.path|length }}</div>
         </div>
       </div>
+      <div class="path">{{ route_info.path | join(' → ') }}</div>
+      {% endif %}
+
+      <div class="map" style="margin-top: 16px;">
+        {% if map_html and route_info %}
+        {{ map_html|safe }}
+        {% else %}
+        <div style="padding: 24px; color: #64748b;">Select two cities and click Find Route to see the map.</div>
+        {% endif %}
+      </div>
     </div>
+    {% endif %}
   </div>
 
   <footer>
-    Built By group 5 using with Flask
+    © 2025 Zimbabwe Route Optimizer 
   </footer>
-  <script>
-    function updateModeUI() {
-      const mode = document.getElementById('mode').value;
-      const tspOptions = document.getElementById('tsp-options');
-      const submitBtn = document.getElementById('submit-btn');
-      const endCityBlock = document.getElementById('end-city-block');
-      const endCitySelect = document.getElementById('end_city');
-      if (mode === 'tsp') {
-        tspOptions.style.display = 'block';
-        submitBtn.textContent = 'Run TSP';
-        // Hide end city for TSP
-        if (endCityBlock) endCityBlock.style.display = 'none';
-        if (endCitySelect) endCitySelect.removeAttribute('required');
-      } else {
-        tspOptions.style.display = 'none';
-        submitBtn.textContent = 'Find Route';
-        // Show end city for shortest path
-        if (endCityBlock) endCityBlock.style.display = 'block';
-        if (endCitySelect) endCitySelect.setAttribute('required', '');
-      }
-    }
-
-    // Initialize UI based on current form state (Jinja may pre-select values)
-    window.addEventListener('DOMContentLoaded', () => {
-      try {
-        updateModeUI();
-      } catch (e) {
-        console.warn('Mode UI init failed', e);
-      }
-
-      // Also ensure that if TSP algorithm is 'constrained' we could expand extras later
-      const modeSelect = document.getElementById('mode');
-      if (modeSelect) modeSelect.addEventListener('change', updateModeUI);
-
-        // Multi-select for mandatory stops
-        const msRoot = document.getElementById('mandatory_select');
-        if (msRoot) {
-          const dropdown = document.getElementById('mandatory_dropdown');
-          const chipsContainer = document.getElementById('mandatory_chips');
-          const hiddenInput = document.getElementById('mandatory_cities');
-
-          // Helper: current selections set
-          const selections = new Set();
-
-          // Initialize from hidden input (server-rendered)
-          if (hiddenInput && hiddenInput.value) {
-            hiddenInput.value.split(',').map(s => s.trim()).filter(Boolean).forEach(c => selections.add(c));
-          }
-
-          function renderChips() {
-            chipsContainer.innerHTML = '';
-            selections.forEach(city => {
-              const chip = document.createElement('span');
-              chip.className = 'chip';
-              chip.textContent = city;
-              const rem = document.createElement('span');
-              rem.className = 'remove';
-              rem.textContent = '×';
-              rem.addEventListener('click', (e) => { e.stopPropagation(); selections.delete(city); renderChips(); });
-              chip.appendChild(rem);
-              chipsContainer.appendChild(chip);
-            });
-            // Update hidden input
-            if (hiddenInput) hiddenInput.value = Array.from(selections).join(', ');
-            // Update dropdown disabled state
-            Array.from(dropdown.querySelectorAll('.option-item')).forEach(it => {
-              const c = it.dataset.city;
-              if (selections.has(c)) it.classList.add('disabled'); else it.classList.remove('disabled');
-            });
-          }
-
-          // Populate initial chips
-          renderChips();
-
-          msRoot.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-          });
-
-          // clicking an option toggles selection
-          Array.from(document.querySelectorAll('#mandatory_dropdown .option-item')).forEach(it => {
-            it.addEventListener('click', (e) => {
-              const city = it.dataset.city;
-              if (selections.has(city)) selections.delete(city); else selections.add(city);
-              renderChips();
-            });
-          });
-
-          // Close dropdown when clicking outside
-          document.addEventListener('click', () => { if (dropdown) dropdown.style.display = 'none'; });
-
-          // Ensure hidden input is updated before submit (in case chips changed but not serialized)
-          const form = document.getElementById('route-form');
-          if (form) {
-            form.addEventListener('submit', () => {
-              if (hiddenInput) hiddenInput.value = Array.from(selections).join(', ');
-            });
-          }
-        }
-    });
-  </script>
 </body>
 </html>
+
 
 

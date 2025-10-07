@@ -9,6 +9,6 @@ class BaseTSP:
         self.graph = graph
         self.cities = graph.get_all_cities()
 
-    def solve_tsp(self, start_city: Optional[str] = None, constraints: dict = None) -> TSPResult:
+    def solve_tsp(self, start_city: Optional[str] = None) -> TSPResult:
         """Override in subclasses."""
         raise NotImplementedError("Subclasses must implement solve_tsp()")
