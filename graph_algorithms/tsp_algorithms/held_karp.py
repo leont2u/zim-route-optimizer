@@ -35,7 +35,9 @@ class HeldKarpAlgorithm(BaseTSP):
                     nodes_visited += 1
                     prev_mask = subset_mask ^ (1 << last)
                     for prev in subset:
-                        if prev in (last, start_idx): continue
+                        # allow the start city as a valid previous node; only skip if prev is the same as last
+                        if prev == last:
+                            continue
                         if (prev_mask, prev) in dp:
                             cost = dp[(prev_mask, prev)] + self.dist_matrix[prev][last]
                             if (subset_mask, last) not in dp or cost < dp[(subset_mask, last)]:
