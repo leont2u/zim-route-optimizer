@@ -39,6 +39,12 @@ class NearestNeighborTSP(BaseTSP):
             current = best_city
 
         total_cost += self.graph.get_weight(current, start_city)
+        # close the tour by returning to the start city
+        if not tour or tour[0] != start_city:
+            tour.insert(0, start_city)
+        if tour[-1] != start_city:
+            tour.append(start_city)
+
         return TSPResult(
             tour=tour,
             total_cost=total_cost,

@@ -39,6 +39,23 @@ class TwoOptTSP(BaseTSP):
                 if improved:
                     break
 
+        # ensure tour starts and ends at start_city
+        if not tour:
+            tour = [start_city, start_city]
+        else:
+            if tour[0] != start_city:
+                # rotate tour so it starts at start_city if present
+                if start_city in tour:
+                    idx = tour.index(start_city)
+                    tour = tour[idx:] + tour[:idx]
+                else:
+                    tour.insert(0, start_city)
+            if tour[-1] != start_city:
+                tour.append(start_city)
+
+        # recalc cost to be safe
+        best_cost = self.calculate_tour_cost(tour)
+
         return TSPResult(
             tour=tour,
             total_cost=best_cost,

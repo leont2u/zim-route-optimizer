@@ -63,6 +63,18 @@ class HeldKarpAlgorithm(BaseTSP):
             tour.append(start_city)
             tour.reverse()
 
+        # ensure tour is closed (starts and ends at start_city)
+        if tour:
+            if tour[0] != start_city:
+                # rotate if start_city is in tour
+                if start_city in tour:
+                    idx = tour.index(start_city)
+                    tour = tour[idx:] + tour[:idx]
+                else:
+                    tour.insert(0, start_city)
+            if tour[-1] != start_city:
+                tour.append(start_city)
+
         return TSPResult(
             tour=tour,
             total_cost=min_cost if min_cost != float('inf') else -1,

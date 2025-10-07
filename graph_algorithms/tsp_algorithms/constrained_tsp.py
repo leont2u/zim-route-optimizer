@@ -36,6 +36,12 @@ class ConstrainedTSP(BaseTSP):
             total_cost += best_cost
             unvisited.remove(best_city)
 
+        # close the tour by returning to the start city if possible
+        if tour and tour[0] == start_city and tour[-1] != start_city:
+            return_cost = self.graph.get_weight(tour[-1], start_city)
+            total_cost += return_cost
+            tour.append(start_city)
+
         return TSPResult(
             tour=tour,
             total_cost=total_cost,

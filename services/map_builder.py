@@ -10,8 +10,27 @@ def build_map_for_path(graph: ZimbabweGraph, path: list[str]):
         lat, lon = graph.get_coordinates(city)
         coords.append((lat, lon))
         folium.Marker([lat, lon], popup=city, tooltip=city).add_to(m)
+    # draw each segment so we can style the closing segment separately
     if len(coords) >= 2:
-        PolyLine(coords, color="blue", weight=4, opacity=0.8).add_to(m)
+        for i in range(len(coords) - 1):
+            segment = [coords[i], coords[i+1]]
+            # if this is the closing segment (returns to start), color it red
+            color = "red" if i == len(coords) - 2 and coords[i+1] == coords[0] else "blue"
+            PolyLine(segment, color=color, weight=4, opacity=0.8).add_to(m)
+    # add a small legend overlay
+    legend_html = '''
+    <div style="position: fixed; 
+                bottom: 50px; left: 10px; width: 160px; height: 70px; 
+                background-color: white; z-index:9999; padding: 8px; border:2px solid grey; border-radius:6px;">
+      <b>Route legend</b><br>
+      <i style="background: blue; width: 12px; height: 6px; display: inline-block; margin-right:6px;"></i> Route segment<br>
+      <i style="background: red; width: 12px; height: 6px; display: inline-block; margin-right:6px;"></i> Return Route
+    </div>
+    '''
+    from folium import Element
+    legend = Element(legend_html)
+    m.get_root().html.add_child(legend)
+
     return m
 
 def build_sparse_graph(base: ZimbabweGraph, max_edge_km: float) -> ZimbabweGraph:
