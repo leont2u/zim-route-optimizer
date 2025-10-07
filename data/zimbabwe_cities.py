@@ -7,6 +7,7 @@ import json
 import numpy as np
 from typing import Dict, List, Tuple, Optional
 
+
 # Major cities in Zimbabwe with their coordinates and population
 ZIMBABWE_CITIES = {
     "Harare": {
@@ -149,6 +150,8 @@ DISTANCE_MATRIX = {
         "Chinhoyi": 0, "Marondera": 0, "Bindura": 0, "Victoria Falls": 0
     }
 }
+
+
 
 # Time matrix (estimated travel time in hours)
 TIME_MATRIX = {
