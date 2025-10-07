@@ -17,9 +17,12 @@ class HeldKarpAlgorithm(BaseTSP):
             for j, c2 in enumerate(self.cities):
                 self.dist_matrix[i][j] = self.graph.get_weight(c1, c2)
 
-    def solve_tsp(self, start_city: Optional[str] = None) -> TSPResult:
+    def solve_tsp(self, start_city: Optional[str] = None, constraints: dict = None) -> TSPResult:
         start_time = time.time()
         start_city = start_city or self.cities[0]
+        constraints = constraints or {}
+        max_budget = constraints.get('max_budget', float('inf'))
+        mandatory = set(constraints.get('mandatory_cities', []))
         start_idx = self.city_to_index[start_city]
 
         dp, parent = {(1 << start_idx, start_idx): 0}, {}
@@ -74,10 +77,19 @@ class HeldKarpAlgorithm(BaseTSP):
                     tour.insert(0, start_city)
             if tour[-1] != start_city:
                 tour.append(start_city)
+        total_cost = min_cost if min_cost != float('inf') else float('inf')
+
+        # Validate mandatory nodes
+        if mandatory and not mandatory.issubset(set(tour)):
+            return TSPResult(tour=[], total_cost=-1, algorithm="Held-Karp", execution_time=time.time() - start_time, nodes_visited=nodes_visited)
+
+        # Validate budget
+        if total_cost > max_budget:
+            return TSPResult(tour=[], total_cost=-1, algorithm="Held-Karp", execution_time=time.time() - start_time, nodes_visited=nodes_visited)
 
         return TSPResult(
             tour=tour,
-            total_cost=min_cost if min_cost != float('inf') else -1,
+            total_cost=total_cost if total_cost != float('inf') else -1,
             algorithm="Held-Karp",
             execution_time=time.time() - start_time,
             nodes_visited=nodes_visited

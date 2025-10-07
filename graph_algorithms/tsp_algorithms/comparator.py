@@ -15,10 +15,10 @@ class TSPComparator:
         self.nearest_neighbor = NearestNeighborTSP(graph)
         self.two_opt = TwoOptTSP(graph)
 
-    def compare_algorithms(self, start_city: Optional[str] = None) -> Dict[str, TSPResult]:
+    def compare_algorithms(self, start_city: Optional[str] = None, constraints: dict = None) -> Dict[str, TSPResult]:
         results = {}
         if len(self.graph.get_all_cities()) <= 12:
-            results["Held-Karp"] = self.held_karp.solve_tsp(start_city)
-        results["Nearest Neighbor"] = self.nearest_neighbor.solve_tsp(start_city)
-        results["Two-Opt"] = self.two_opt.solve_tsp(start_city)
+            results["Held-Karp"] = self.held_karp.solve_tsp(start_city, constraints=constraints)
+        results["Nearest Neighbor"] = self.nearest_neighbor.solve_tsp(start_city, constraints=constraints)
+        results["Two-Opt"] = self.two_opt.solve_tsp(start_city, constraints=constraints)
         return results

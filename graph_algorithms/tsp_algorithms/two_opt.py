@@ -63,7 +63,7 @@ class TwoOptTSP:
         
         return total_cost
     
-    def solve_tsp(self, start_city: Optional[str] = None, max_iterations: int = 1000) -> TSPResult:
+    def solve_tsp(self, start_city: Optional[str] = None, max_iterations: int = 1000, constraints: dict = None) -> TSPResult:
         """
         Solve TSP using two-opt improvement heuristic.
         
@@ -82,13 +82,15 @@ class TwoOptTSP:
         if start_city not in self.cities:
             raise ValueError(f"City not found: {start_city}")
         
-        # Start with nearest neighbor solution
+        # Start with nearest neighbor solution (pass constraints through)
         nn_solver = NearestNeighborTSP(self.graph)
-        initial_result = nn_solver.solve_tsp(start_city)
-        
+        initial_result = nn_solver.solve_tsp(start_city, constraints=constraints)
+
         tour = initial_result.tour.copy()
         best_cost = initial_result.total_cost
         nodes_visited = initial_result.nodes_visited
+        constraints = constraints or {}
+        max_budget = constraints.get('max_budget', float('inf'))
         
         improved = True
         iteration = 0
@@ -121,8 +123,15 @@ class TwoOptTSP:
                     
                     # Keep track of the best improvement
                     if improvement > best_improvement:
-                        best_improvement = improvement
-                        best_i, best_j = i, j
+                        # Quick budget check: estimate new cost and only consider if within budget
+                        # Compute candidate new cost by applying swap to a copy (cheap for small tours)
+                        # Note: calculate_tour_cost is O(n), but this is safe for moderate n or small iteration count
+                        candidate_tour = tour.copy()
+                        candidate_tour[ i: j+1 ] = candidate_tour[ i: j+1 ][::-1]
+                        candidate_cost = self.calculate_tour_cost(candidate_tour)
+                        if candidate_cost <= max_budget:
+                            best_improvement = improvement
+                            best_i, best_j = i, j
             
             # Apply the best improvement if it exists
             if best_improvement > 1e-12:  # Use small epsilon for numerical stability
