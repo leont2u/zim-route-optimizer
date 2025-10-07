@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request
-from data.zimbabwe_cities import ZimbabweGraph
-from graph_algorithms.shortest_path import ShortestPathComparator
-from graph_algorithms.tsp_algorithms import TSPComparator, ConstrainedTSP
+from graph_algorithms.shortest_path.comparator import ShortestPathComparator
+from graph_algorithms.tsp_algorithms.comparator import TSPComparator
+from graph_algorithms.tsp_algorithms.constrained_tsp import ConstrainedTSP
 import folium
 from folium import PolyLine
+from models.zimbabwe_graph import ZimbabweGraph
 
 
 app = Flask(__name__)
