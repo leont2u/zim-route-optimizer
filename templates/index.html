@@ -17,22 +17,43 @@
       from { transform: translateY(20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+
+    /* Theme variables - dark defaults, overridden for light mode below */
+    :root {
+      --bg-gradient: linear-gradient(-45deg, #000428, #004e92, #000428);
+      --text-color: #e2e8f0;
+      --header-bg: rgba(2, 6, 23, 0.8);
+      --card-bg: rgba(15, 23, 42, 0.7);
+      --control-bg: rgba(2, 6, 23, 0.6);
+      --muted: #94a3b8;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --pill-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      --meta-bg: rgba(2, 6, 23, 0.6);
+      --path-bg: rgba(2, 6, 23, 0.8);
+      --chip-bg: rgba(59,130,246,0.12);
+      --chip-color: #cfe7ff;
+      --map-border: rgba(255, 255, 255, 0.1);
+      --footer-bg: rgba(2, 6, 23, 0.8);
+      --error-bg: #fef2f2; /* light-looking error colors are fine when paired with dark text via variable below */
+      --error-border: #fecaca;
+      --error-color: #991b1b;
+    }
+
     body { 
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
       margin: 0; 
-      background: #030712; 
-      color: #e2e8f0;
       min-height: 100vh;
-      background: linear-gradient(-45deg, #000428, #004e92, #000428);
+      background: var(--bg-gradient);
       background-size: 400% 400%;
       animation: gradient 15s ease infinite;
+      color: var(--text-color);
     }
     header { 
-      background: rgba(2, 6, 23, 0.8);
+      background: var(--header-bg);
       backdrop-filter: blur(10px);
-      color: white; 
+      color: inherit; 
       padding: 28px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--border-color);
     }
     .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
     h1 { 
@@ -44,13 +65,13 @@
       -webkit-text-fill-color: transparent;
     }
     .card { 
-      background: rgba(15, 23, 42, 0.7);
+      background: var(--card-bg);
       border-radius: 16px;
       box-shadow: 0 8px 32px rgba(2, 6, 23, 0.2);
       padding: 24px;
       margin-top: -24px;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-color);
       animation: slideUp 0.5s ease-out;
     }
     .row { 
@@ -85,6 +106,7 @@
       gap: 8px;
       flex-wrap: wrap;
       border: 1px solid rgba(255,255,255,0.06);
+      z-index: 1000; /* ensure the control is above surrounding content */
     }
     .multi-select .chips { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
     .chip {
@@ -92,7 +114,19 @@
     }
     .chip .remove { cursor:pointer; font-weight:700; padding-left:6px; }
     .options-dropdown {
-      position: absolute; left: 8px; right: 8px; top: calc(100% + 8px); background: rgba(2,6,23,0.95); border-radius:8px; max-height:220px; overflow:auto; z-index:50; box-shadow:0 8px 30px rgba(2,6,23,0.5); border:1px solid rgba(255,255,255,0.06);
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: calc(100% + 8px);
+      background: rgba(2,6,23,0.95);
+      border-radius:8px;
+      max-height:220px;
+      overflow:auto;
+      z-index: 9999; /* large z-index so dropdown overlays meta/map */
+      box-shadow:0 8px 30px rgba(2,6,23,0.5);
+      border:1px solid rgba(255,255,255,0.06);
+      /* Prevent the dropdown from creating its own stacking context that could get clipped */
+      transform: translateZ(0);
     }
     .option-item { padding:10px 12px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.03); }
     .option-item:hover { background: rgba(255,255,255,0.02); }
@@ -198,33 +232,39 @@
   <style>
     /* Dark mode is now the default theme */
     @media (prefers-color-scheme: light) {
-      body { 
-        background: #f8fafc;
-        color: #0f172a;
-        background: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #f0f9ff);
+      /* Light theme overrides via CSS variables */
+      :root {
+        --bg-gradient: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #f0f9ff);
+        --text-color: #0f172a;
+        --header-bg: rgba(255, 255, 255, 0.8);
+        --card-bg: rgba(255, 255, 255, 0.7);
+        --control-bg: rgba(255, 255, 255, 0.9);
+        --muted: #475569;
+        --border-color: rgba(0, 0, 0, 0.08);
+        --pill-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        --meta-bg: rgba(255, 255, 255, 0.7);
+        --path-bg: rgba(255, 255, 255, 0.9);
+        --chip-bg: rgba(59,130,246,0.08);
+        --chip-color: #0f172a;
+        --map-border: rgba(0, 0, 0, 0.08);
+        --footer-bg: rgba(255, 255, 255, 0.8);
+        --error-bg: #fee2e2;
+        --error-border: #fecaca;
+        --error-color: #7f1d1d;
       }
-      header { 
-        background: rgba(255, 255, 255, 0.8);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      }
-      .card, .meta { 
-        background: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-      }
-      select, button, input { 
-        background: rgba(255, 255, 255, 0.9);
-        color: #0f172a;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-      }
-      label { color: #475569; }
-      .path { 
-        background: rgba(255, 255, 255, 0.9);
-        color: #0f172a;
-      }
-      footer {
-        background: rgba(255, 255, 255, 0.8);
-        color: #475569;
-      }
+      /* Inputs and labels inherit the new variables */
+      label { color: var(--muted); }
+      select, button, input { background: var(--control-bg); color: var(--text-color); border: 1px solid var(--border-color); }
+      .card, .meta { background: var(--card-bg); border: 1px solid var(--border-color); }
+      .path { background: var(--path-bg); color: var(--text-color); }
+      footer { background: var(--footer-bg); color: var(--muted); }
+    }
+
+    /* Theme-aware error meta box */
+    .meta.error {
+      background: var(--error-bg);
+      border-color: var(--error-border);
+      color: var(--error-color);
     }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -307,7 +347,7 @@
                 <div class="chips" id="mandatory_chips">
                   <!-- chips inserted here -->
                 </div>
-                <div style="flex:1;color:#94a3b8;">Select mandatory stops</div>
+                <div style="flex:1;color:var(--muted);">Select mandatory stops</div>
                 <div id="mandatory_dropdown" class="options-dropdown" style="display:none;">
                   {% for city in cities %}
                     <div class="option-item" data-city="{{ city }}">{{ city }}</div>
@@ -320,17 +360,17 @@
             <div>
               <label for="max_budget">Max Budget (same units as weight)</label>
               <input id="max_budget" name="max_budget" type="number" step="any" placeholder="e.g., 1200" value="{{ request.form.max_budget or '' }}" />
-              <small style="color:#94a3b8; font-size:11px;">Demo: Try 800 to see budget constraint effects</small>
+              <small style="color:var(--muted); font-size:11px;">Demo: Try 800 to see budget constraint effects</small>
             </div>
             <div>
               <label for="max_time">Max Time (hours, approx)</label>
               <input id="max_time" name="max_time" type="number" step="any" placeholder="e.g., 20" value="{{ request.form.max_time or '' }}" />
-              <small style="color:#94a3b8; font-size:11px;">Demo: Try 8 to see time constraint effects</small>
+              <small style="color:var(--muted); font-size:11px;">Demo: Try 8 to see time constraint effects</small>
             </div>
           </div>
           <div style="margin-top:12px; display:flex; gap:10px;">
             <div style="flex:1">
-              <small style="color:#94a3b8;">When TSP mode is selected, the main Find Route button will execute the selected TSP algorithm.</small>
+              <small style="color:var(--muted);">When TSP mode is selected, the main Find Route button will execute the selected TSP algorithm.</small>
             </div>
           </div>
         </div>
@@ -351,7 +391,7 @@
           </div>
           <div class="path">{{ route_info.path | join(' -> ') }}</div>
         {% elif route_info and route_info.error %}
-          <div class="meta" style="border-color:#fecaca; background:#fef2f2; color:#991b1b;">
+          <div class="meta error">
             {{ route_info.error }}
           </div>
         {% endif %}
@@ -360,7 +400,7 @@
           {% if map_html and route_info %}
             {{ map_html|safe }}
           {% else %}
-            <div style="padding: 24px; color: #64748b;">Select two cities and click Find Route to see the map.</div>
+            <div style="padding: 24px; color: var(--muted);">Select two cities and click Find Route to see the map.</div>
           {% endif %}
         </div>
       </div>
